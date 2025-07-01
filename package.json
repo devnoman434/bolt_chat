@@ -1,0 +1,20 @@
+{
+  "name": "bolt_chat",
+  "version": "1.0.0",
+  "description": "",
+  "main": "ChatBackend.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devnoman434/bolt_chat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/devnoman434/bolt_chat/issues"
+  },
+  "homepage": "https://github.com/devnoman434/bolt_chat#readme"
+}
