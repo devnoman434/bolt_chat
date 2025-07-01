@@ -1,37 +1,25 @@
 export default {
-  async fetch(request,env) {
-    // Handle CORS preflight
-    if (request.method === 'OPTIONS') {
-      return new Response(null, {
-        status: 204,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'POST,OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type',
-        },
+  async fetch(request, env, ctx) {
+    if (request.method !== "POST" || new URL(request.url).pathname !== "/ask") {
+      return new Response(JSON.stringify({ success: false, error: "Not found" }), {
+        status: 404,
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    // Ensure POST method
-    if (request.method !== 'POST') {
-      return new Response(JSON.stringify({ success: false, error: "Only POST allowed" }), {
-        status: 405,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    const { CF_ACCOUNT_ID, CF_API_TOKEN } = env;
+
+    const body = await request.json();
+    const userPrompt = body.prompt;
+
+    if (!userPrompt) {
+      return new Response(JSON.stringify({ success: false, error: "Missing prompt." }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
       });
     }
 
-    try {
-      const body = await request.json();
-      const userPrompt = body.prompt;
-
-      if (!userPrompt) {
-        return new Response(JSON.stringify({ success: false, error: "Missing prompt." }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-        });
-      }
-
-      const systemPrompt = `
+    const systemPrompt = `
 You are a friendly AI assistant for Bolt VPN.
 
 Greeting Behavior:
@@ -52,7 +40,7 @@ Bolt VPN Info to Use Based on User Questions:
 - Connection Time: Bolt VPN offers 30-minute connection sessions for free users and for premium no time limit.
 - IPs: Bolt VPN provides dedicated IP addresses.
 - Virtual Numbers: Bolt VPN offers virtual phone numbers.
-- Device management : If you register on one device and login on any other device,any other OS so your account remains same because of syncing of your account and in premium plan this is very useful.
+- Device management: If you register on one device and login on any other device, your account stays synced.
 - Pricing:
   - $15/month (monthly plan)
   - $7.5/month (yearly plan)
@@ -60,53 +48,45 @@ Bolt VPN Info to Use Based on User Questions:
 - Servers: Bolt VPN has servers in 100+ countries.
 - Payment Methods: Accepts credit cards and PayPal.
 - Support: Available 24/7 via email and live chat.
-- Download: If you have to download Bolt VPN then go to specific OS store and serach for it,we have service for every OS.Like for android it is playstore and like that.
-- If a user asks for connection timeout then tell the respected user to use the stable internet connection or switch to some other protocol,there are two protocols in our case...switch if you are using OpenVPN to shadowsocks or if you are using Shadowsocks then switch to openvpn. (Don't write this at once)
-- If a user asks that location is not switching,then tell him/her "Check if vpn is connected or not".
-- If a user does not including the name of Bolt VPN then you have to unterstand that user is always asking about Bolt VPN not anything else.
+- Download: Search “Bolt VPN” on your device’s app store (Play Store, etc.)
+- Troubleshooting:
+  - If location doesn't switch: "Check if VPN is connected."
+  - If connection times out: "Switch between OpenVPN and Shadowsocks, and ensure stable internet."
 `;
 
-      const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
-      const ACCOUNT_ID = env.CF_ACCOUNT_ID;
-      const API_TOKEN = env.CF_API_TOKEN;
-      const MODEL_NAME = "@cf/google/gemma-7b-it-lora";
+    const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
 
-      const aiRes = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL_NAME}`,
+    try {
+      const response = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${API_TOKEN}`,
+            Authorization: `Bearer ${CF_API_TOKEN}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ prompt: fullPrompt }),
         }
       );
 
-      const data = await aiRes.json();
+      const data = await response.json();
 
       if (!data.success) {
-        return new Response(JSON.stringify({
-          success: false,
-          errors: data.errors || ["Unknown error"]
-        }), {
+        return new Response(JSON.stringify({ success: false, errors: data.errors }), {
           status: 500,
-          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+          headers: { "Content-Type": "application/json" },
         });
       }
 
-      return new Response(JSON.stringify({
-        success: true,
-        response: data.result.response || "[No response]",
-      }), {
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      return new Response(JSON.stringify({ success: true, response: data.result.response || "[No response]" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       });
-
-    } catch (err) {
-      return new Response(JSON.stringify({ success: false, errors: [err.message] }), {
+    } catch (error) {
+      return new Response(JSON.stringify({ success: false, error: error.message }), {
         status: 500,
-        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        headers: { "Content-Type": "application/json" },
       });
     }
-  }
+  },
 };
