@@ -67,8 +67,8 @@ Bolt VPN Info to Use Based on User Questions:
 `;
 
       const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
-      const ACCOUNT_ID = CF_ACCOUNT_ID;
-      const API_TOKEN = CF_API_TOKEN;
+      const ACCOUNT_ID = env.CF_ACCOUNT_ID;
+      const API_TOKEN = env.CF_API_TOKEN;
       const MODEL_NAME = "@cf/google/gemma-7b-it-lora";
 
       const aiRes = await fetch(
