@@ -24,7 +24,9 @@ export default {
       });
     }
 
-    const { CF_ACCOUNT_ID, CF_API_TOKEN } = env;
+  const CF_ACCOUNT_ID="349395e7c3501afa6f87a9b3ba9f6472";
+  const CF_API_TOKEN="yr3h05ImkpjS-WJ1i2-SV0pCPDLTjjfb6XcWlEMz"
+
     const body = await request.json();
     const userPrompt = body.prompt;
 
