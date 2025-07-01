@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "ChatBackend.js",
+  "type": "module",
   "scripts": {
+    "start": "node ChatBackend.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/devnoman434/bolt_chat/issues"
   },
-  "homepage": "https://github.com/devnoman434/bolt_chat#readme"
+  "homepage": "https://github.com/devnoman434/bolt_chat#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.0",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2"
+  }
 }
