@@ -1,20 +1,37 @@
 export default {
-  async fetch(request, env, ctx) {
-    const url = new URL(request.url);
+  async fetch(request) {
+    // Handle CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'POST,OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type',
+        },
+      });
+    }
 
-    if (request.method === "POST" && url.pathname === "/ask") {
-      try {
-        const body = await request.json();
-        const userPrompt = body.prompt;
+    // Ensure POST method
+    if (request.method !== 'POST') {
+      return new Response(JSON.stringify({ success: false, error: "Only POST allowed" }), {
+        status: 405,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
 
-        if (!userPrompt) {
-          return new Response(JSON.stringify({ success: false, error: "Missing prompt." }), {
-            status: 400,
-            headers: { "Content-Type": "application/json" },
-          });
-        }
+    try {
+      const body = await request.json();
+      const userPrompt = body.prompt;
 
-        const systemPrompt = `
+      if (!userPrompt) {
+        return new Response(JSON.stringify({ success: false, error: "Missing prompt." }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+        });
+      }
+
+      const systemPrompt = `
 You are a friendly AI assistant for Bolt VPN.
 
 Greeting Behavior:
@@ -49,40 +66,47 @@ Bolt VPN Info to Use Based on User Questions:
 - If a user does not including the name of Bolt VPN then you have to unterstand that user is always asking about Bolt VPN not anything else.
 `;
 
-        const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
+      const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
+      const ACCOUNT_ID = CF_ACCOUNT_ID;
+      const API_TOKEN = CF_API_TOKEN;
+      const MODEL_NAME = "@cf/google/gemma-7b-it-lora";
 
-        const aiResponse = await fetch(
-          `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${env.CF_API_TOKEN}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ prompt: fullPrompt }),
-          }
-        );
-
-        const data = await aiResponse.json();
-
-        if (!data.success) {
-          return new Response(JSON.stringify({ success: false, errors: data.errors || ["Unknown error"] }), {
-            status: 500,
-            headers: { "Content-Type": "application/json" },
-          });
+      const aiRes = await fetch(
+        `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL_NAME}`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${API_TOKEN}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: fullPrompt }),
         }
+      );
 
-        return new Response(JSON.stringify({ success: true, response: data.result.response || "[No response]" }), {
-          headers: { "Content-Type": "application/json" },
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ success: false, errors: [err.message] }), {
+      const data = await aiRes.json();
+
+      if (!data.success) {
+        return new Response(JSON.stringify({
+          success: false,
+          errors: data.errors || ["Unknown error"]
+        }), {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
         });
       }
-    }
 
-    return new Response("Not Found", { status: 404 });
-  },
+      return new Response(JSON.stringify({
+        success: true,
+        response: data.result.response || "[No response]",
+      }), {
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+
+    } catch (err) {
+      return new Response(JSON.stringify({ success: false, errors: [err.message] }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+  }
 };
