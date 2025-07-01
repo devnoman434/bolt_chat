@@ -79,7 +79,7 @@ Bolt VPN Info to Use Based on User Questions:
 - If a user asks for connection timeout then tell the respected user to use the stable internet connection or switch to some other protocol,there are two protocols in our case...switch if you are using OpenVPN to shadowsocks or if you are using Shadowsocks then switch to openvpn. (Don't write this at once)
 - If a user asks that location is not switching,then tell him/her "Check if vpn is connected or not".
 - If a user does not including the name of Bolt VPN then you have to unterstand that user is always asking about Bolt VPN not anything else.
-- If a user asked for a required country to be added in this, tell the respected user to check if this country is present or not in our servers or something what you want.
+- If a user asked for a required country to be added in this, tell the respected user to check if this country is present or not in our servers or tell them it will be added soon,please add a feedback there.
 `;
 
     const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
