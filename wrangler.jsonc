@@ -4,7 +4,7 @@
  */
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "divine-night-6a77",
+	"name": "bolt_chat",
 	"main": "src/index.js",
 	"compatibility_date": "2025-07-01",
 	"observability": {

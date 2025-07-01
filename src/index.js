@@ -1,27 +1,20 @@
-import express from "express";
-import cors from "cors";
-import fetch from "node-fetch";
-import dotenv from 'dotenv'
+export default {
+  async fetch(request, env, ctx) {
+    const url = new URL(request.url);
 
+    if (request.method === "POST" && url.pathname === "/ask") {
+      try {
+        const body = await request.json();
+        const userPrompt = body.prompt;
 
-dotenv.config()
-const app = express();
-const PORT = process.env.PORT || 4000;
+        if (!userPrompt) {
+          return new Response(JSON.stringify({ success: false, error: "Missing prompt." }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
 
-app.use(cors());
-app.use(express.json());
-
-const ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
-const MODEL_NAME = "@cf/google/gemma-7b-it-lora";
-const API_TOKEN = process.env.CF_API_TOKEN;
-
-app.post("/ask", async (req, res) => {
-  const userPrompt = req.body.prompt;
-  if (!userPrompt) {
-    return res.status(400).json({ success: false, error: "Missing prompt." });
-  }
-
-  const systemPrompt = `
+        const systemPrompt = `
 You are a friendly AI assistant for Bolt VPN.
 
 Greeting Behavior:
@@ -56,38 +49,40 @@ Bolt VPN Info to Use Based on User Questions:
 - If a user does not including the name of Bolt VPN then you have to unterstand that user is always asking about Bolt VPN not anything else.
 `;
 
-  const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
+        const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
 
-  try {
-    const response = await fetch(
-      `https://api.cloudflare.com/client/v4/accounts/${ACCOUNT_ID}/ai/run/${MODEL_NAME}`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${API_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt: fullPrompt }),
+        const aiResponse = await fetch(
+          `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${env.CF_API_TOKEN}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ prompt: fullPrompt }),
+          }
+        );
+
+        const data = await aiResponse.json();
+
+        if (!data.success) {
+          return new Response(JSON.stringify({ success: false, errors: data.errors || ["Unknown error"] }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, response: data.result.response || "[No response]" }), {
+          headers: { "Content-Type": "application/json" },
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false, errors: [err.message] }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" },
+        });
       }
-    );
-
-    const data = await response.json();
-
-    if (!data.success) {
-      return res
-        .status(500)
-        .json({ success: false, errors: data.errors || ["Unknown error"] });
     }
 
-    res.json({
-      success: true,
-      response: data.result.response || "[No response]",
-    });
-  } catch (error) {
-    res.status(500).json({ success: false, errors: [error.message] });
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+    return new Response("Not Found", { status: 404 });
+  },
+};
