@@ -1,28 +1,17 @@
 {
-  "name": "bolt_chat",
-  "version": "1.0.0",
-  "description": "",
-  "main": "ChatBackend.js",
-  "type": "module",
-  "scripts": {
-    "start": "node ChatBackend.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/devnoman434/bolt_chat.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/devnoman434/bolt_chat/issues"
-  },
-  "homepage": "https://github.com/devnoman434/bolt_chat#readme",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^17.0.0",
-    "express": "^5.1.0",
-    "node-fetch": "^3.3.2"
-  }
+	"name": "divine-night-6a77",
+	"version": "0.0.0",
+	"private": true,
+	"main": "src/index.js",
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"test": "vitest"
+	},
+	"devDependencies": {
+		"@cloudflare/vitest-pool-workers": "^0.8.19",
+		"vitest": "~3.2.0",
+		"wrangler": "^4.22.0"
+	}
 }
