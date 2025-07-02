@@ -172,7 +172,6 @@ export default {
 
     const CF_ACCOUNT_ID = "349395e7c3501afa6f87a9b3ba9f6472";
     const CF_API_TOKEN = "yr3h05ImkpjS-WJ1i2-SV0pCPDLTjjfb6XcWlEMz";
-    const MODEL_NAME = "@cf/openchat/openchat-3.5-0106";
 
     const body = await request.json();
     const userPrompt = body.prompt;
@@ -237,7 +236,7 @@ Country Availability Handling:
 
     try {
       const response = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/${MODEL_NAME}`,
+        `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
         {
           method: "POST",
           headers: {
