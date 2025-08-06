@@ -148,8 +148,23 @@ User: ${username}
 
     const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
 
+    async function fetchWithTimeout(resource, options = {}, timeout = 10000) {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeout);
+      options.signal = controller.signal;
+
+      try {
+        const response = await fetch(resource, options);
+        clearTimeout(id);
+        return response;
+      } catch (error) {
+        clearTimeout(id);
+        throw new Error("AI model timed out.");
+      }
+    }
+
     try {
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
         {
           method: "POST",
