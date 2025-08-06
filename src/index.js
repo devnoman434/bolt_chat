@@ -129,7 +129,7 @@ User: ${username}
 
     try {
       const response = await fetchWithTimeout(
-        `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
+        `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@hf/google/gemma-7b-it`,
         {
           method: "POST",
           headers: {
