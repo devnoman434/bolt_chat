@@ -1,5 +1,5 @@
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request) {
     const corsHeaders = {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -215,6 +215,7 @@ Greeting Behavior:
 
 Answering Rules:
 - Answer only Bolt VPN-related questions. Politely refuse anything unrelated.
+- If the input is vague, unclear, or symbols like "..." or "#", DO NOT share any Bolt VPN features. Respond with a polite prompt asking the user to clarify.
 - Keep responses short (10–15 words), helpful, and friendly.
 - Do NOT share all info unless specifically asked.
 - Do NOT repeat yourself unless asked again.
@@ -251,10 +252,12 @@ Country Availability:
 
 Important Behavior:
 - Treat all queries as referring to Bolt VPN even if not mentioned.
-- If question is vague, off-topic, or not Bolt VPN-related, reply politely with a brief introduction only.
+- If the question is vague (like "...", "#", "???", or unclear symbols), reply with: "Could you please clarify your question about Bolt VPN?"
+- If question is off-topic or not Bolt VPN-related, reply politely with a brief introduction only.
 
-User: ${username}
+User: \${username}
 `;
+
 
 
     const fullPrompt = `${systemPrompt.replace(
