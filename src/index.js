@@ -6,207 +6,87 @@ export default {
       "Access-Control-Allow-Headers": "Content-Type",
     };
 
-    // Handle CORS preflight request
+    // Handle CORS preflight
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: corsHeaders,
-      });
+      return new Response(null, { status: 204, headers: corsHeaders });
     }
 
-    if (request.method !== "POST" || new URL(request.url).pathname !== "/ask") {
+    // Validate route and method
+    const { pathname } = new URL(request.url);
+    if (request.method !== "POST" || pathname !== "/ask") {
       return new Response(
         JSON.stringify({ success: false, error: "Not found" }),
-        {
-          status: 404,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
+        { status: 404, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
+    // --- VPN server dataset ---
     const vpnData = [
-      {
-        country: "Germany",
-        flag: "/assets/countries/Germany.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Netherlands",
-        flag: "/assets/countries/Netherlands.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Switzerland",
-        flag: "/assets/countries/Switzerland.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Spain",
-        flag: "/assets/countries/Spain.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Norway",
-        flag: "/assets/countries/Norway.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "United States",
-        flag: "/assets/countries/United_States.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "United Kingdom",
-        flag: "/assets/countries/Great_Britain.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "France",
-        flag: "/assets/countries/France.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Sweden",
-        flag: "/assets/countries/Sweden.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Ireland",
-        flag: "/assets/countries/Ireland.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Canada",
-        flag: "/assets/countries/Canada.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Poland",
-        flag: "/assets/countries/Poland.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Australia",
-        flag: "/assets/countries/Australia.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Czech-Republic",
-        flag: "/assets/countries/Czech_Republic.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "India",
-        flag: "/assets/countries/India.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "South_Korea",
-        flag: "/assets/countries/South_Korea.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Turkey",
-        flag: "/assets/countries/Türkiye.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
-      {
-        country: "Brazil",
-        flag: "/assets/countries/Brazil.webp",
-        openvpn: true,
-        ikev2: true,
-        shadowsocks: true,
-      },
+      { country: "Germany", flag: "/assets/countries/Germany.webp" },
+      { country: "Netherlands", flag: "/assets/countries/Netherlands.webp" },
+      { country: "Switzerland", flag: "/assets/countries/Switzerland.webp" },
+      { country: "Spain", flag: "/assets/countries/Spain.webp" },
+      { country: "Norway", flag: "/assets/countries/Norway.webp" },
+      { country: "United States", flag: "/assets/countries/United_States.webp" },
+      { country: "United Kingdom", flag: "/assets/countries/Great_Britain.webp" },
+      { country: "France", flag: "/assets/countries/France.webp" },
+      { country: "Sweden", flag: "/assets/countries/Sweden.webp" },
+      { country: "Ireland", flag: "/assets/countries/Ireland.webp" },
+      { country: "Canada", flag: "/assets/countries/Canada.webp" },
+      { country: "Poland", flag: "/assets/countries/Poland.webp" },
+      { country: "Australia", flag: "/assets/countries/Australia.webp" },
+      { country: "Czech Republic", flag: "/assets/countries/Czech_Republic.webp" },
+      { country: "India", flag: "/assets/countries/India.webp" },
+      { country: "South Korea", flag: "/assets/countries/South_Korea.webp" },
+      { country: "Turkey", flag: "/assets/countries/Türkiye.webp" },
+      { country: "Brazil", flag: "/assets/countries/Brazil.webp" },
     ];
 
+    // --- Country availability check ---
     function checkCountryAvailability(countryName) {
-      const normalized = countryName.trim().toLowerCase();
-      const match = vpnData.find(
-        ({ country }) =>
-          country.toLowerCase().replace(/[_-]/g, " ") === normalized
-      );
-
-      if (match) {
-        return "Yes, this server is available for you.";
-      } else {
-        return "That country is not currently available. Please leave feedback to request it.";
-      }
+      const normalized = countryName.trim().toLowerCase().replace(/[_-]/g, " ");
+      const match = vpnData.find(({ country }) => country.toLowerCase() === normalized);
+      return match
+        ? "Yes, this server is available for you."
+        : "That country is not currently available. Please leave feedback to request it.";
     }
 
     const CF_ACCOUNT_ID = "349395e7c3501afa6f87a9b3ba9f6472";
     const CF_API_TOKEN = "yr3h05ImkpjS-WJ1i2-SV0pCPDLTjjfb6XcWlEMz";
 
-    const body = await request.json();
-    const userPrompt = body.prompt;
-    const username = body.username;
-
-    if (!userPrompt) {
+    // --- Parse request body ---
+    let body;
+    try {
+      body = await request.json();
+    } catch {
       return new Response(
-        JSON.stringify({ success: false, error: "Missing prompt." }),
-        {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
+        JSON.stringify({ success: false, error: "Invalid JSON body." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
+    const { prompt: userPrompt, username = "Guest" } = body;
+
+    if (!userPrompt || typeof userPrompt !== "string") {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing or invalid prompt." }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // --- Guest handling ---
     if (username.toLowerCase() === "guest") {
       return new Response(
         JSON.stringify({
           success: true,
           response: "Please log in or sign up to continue using the assistant.",
         }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
 
-const systemPrompt = `
+    // --- Bolt VPN system prompt ---
+    const systemPrompt = `
 You are the official AI assistant for Bolt VPN — friendly, concise, and professional.
 
 Greeting Behavior:
@@ -258,13 +138,10 @@ Important Behavior:
 User: \${username}
 `;
 
+    // --- Final assembled prompt ---
+    const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
 
-
-    const fullPrompt = `${systemPrompt.replace(
-      "User's name",
-      username
-    )}\nUser: ${userPrompt}`;
-
+    // --- Cloudflare AI API call ---
     try {
       const response = await fetch(
         `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
@@ -274,7 +151,7 @@ User: \${username}
             Authorization: `Bearer ${CF_API_TOKEN}`,
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ prompt: fullPrompt, username: username }),
+          body: JSON.stringify({ prompt: fullPrompt, username }),
         }
       );
 
@@ -283,39 +160,21 @@ User: \${username}
       if (!data.success) {
         return new Response(
           JSON.stringify({ success: false, errors: data.errors }),
-          {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...corsHeaders,
-            },
-          }
+          { status: 502, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
 
       return new Response(
         JSON.stringify({
           success: true,
-          response: data.result.response || "[No response]",
+          response: data.result?.response || "[No response received]",
         }),
-        {
-          status: 200,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
+        { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
-    } catch (error) {
+    } catch (err) {
       return new Response(
-        JSON.stringify({ success: false, error: error.message }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            ...corsHeaders,
-          },
-        }
+        JSON.stringify({ success: false, error: err.message || "Request failed" }),
+        { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
   },
