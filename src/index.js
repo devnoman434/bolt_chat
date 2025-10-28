@@ -139,7 +139,7 @@ User: ${username}
 `;
 
     // --- Final assembled prompt ---
-    const fullPrompt = `${systemPrompt}\nUser: ${userPrompt}`;
+    const fullPrompt = `System: ${systemPrompt}\n\nUser: ${username} says "${userPrompt}"\nAssistant:`;
 
     // --- Cloudflare AI API call ---
     try {

@@ -123,8 +123,10 @@ Important Behavior:
 
 User: ${username}
 `;
-    const fullPrompt = `${systemPrompt}
-User: ${userPrompt}`;
+    const fullPrompt = `System: ${systemPrompt}
+
+User: ${username} says "${userPrompt}"
+Assistant:`;
     try {
       const response = await fetch(
         `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/@cf/google/gemma-7b-it-lora`,
