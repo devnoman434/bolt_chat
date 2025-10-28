@@ -121,7 +121,7 @@ Important Behavior:
 - If the question is vague or unrelated, reply politely with a short Bolt VPN introduction.
 - Maintain a tone that is warm, confident, and professional.
 
-User: \${username}
+User: ${username}
 `;
     const fullPrompt = `${systemPrompt}
 User: ${userPrompt}`;
